@@ -1,2 +1,5 @@
-# minesweeper
-A minesweeper game made in C
+## Usage:
+
+tcc minesweeper.c -run
+
+gcc minesweeper.c -o exec
