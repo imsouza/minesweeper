@@ -1,46 +1,87 @@
+/**
+ * @file minesweeper.c
+ * @brief A minesweeper game made in C  
+ * @author Mateus Almeida
+ * @version 1.0
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "output.h"
 #include "start.h"
 
-// This function calculates the remaining fields and their neighbors that have bombs
-int countFields (int board[10][10], int x, int y) {
+//! Matrix size
+#define TAM 10
+
+/**
+ * Static array with the messages that will be displayed
+ */
+static const char * const messages[] = {
+  "\nBOOOM! Game Over...\n",                                                  // 0
+  "\n-[ You win!!! ]-\n",                                                     // 1
+  "\n-=-=-=-=-=--=-=-=-=-=-\n",                                               // 2
+  "\n[!] Error, out of range.\n",                                             // 3
+  "\n[!] Error, try other coordinates.\n",                                    // 4
+  "\t\t  -[ Minesweeper ]-\n\t- [(1) Easy | (2) Medium | (3) Hard] -\n\n",    // 5
+  "\n[+] Select your level: ",                                                // 6
+  "\n[!] Select the correct level!\n",                                        // 7
+  "\nTry again [Y|N] ?\b",                                                    // 8
+  "\n[+] New coordinate (X, Y): ",                                            // 9
+  "\n\n[-] Remaining fields: "                                                // 10
+};
+
+
+/**
+ * This function calculates the remaining fields and their 
+ * neighbors that have bombs
+ * @param board: matrix
+ * @param posX: x coordenate
+ * @param posY: y coordenate
+ */
+int countFields (int board[][TAM], int posX, int posY) {
   int i, j, count=0;
 
-  if (board[x + 1][y + 1] == 9) count++;
-  if (board[x + 1][y] == 9)     count++;
-  if (board[x][y + 1] == 9)     count++;
-  if (board[x - 1][y - 1] == 9) count++;
-  if (board[x - 1][y] == 9)     count++;
-  if (board[x][y - 1] == 9)     count++;
-  if (board[x + 1][y - 1] == 9) count++;
-  if (board[x - 1][y + 1] == 9) count++;
+  if (board[posX + 1][posY + 1] == 9) count++;
+  if (board[posX + 1][posY] == 9)     count++;
+  if (board[posX][posY + 1] == 9)     count++;
+  if (board[posX - 1][posY - 1] == 9) count++;
+  if (board[posX - 1][posY] == 9)     count++;
+  if (board[posX][posY - 1] == 9)     count++;
+  if (board[posX + 1][posY - 1] == 9) count++;
+  if (board[posX - 1][posY + 1] == 9) count++;
 
   return count;
 }
 
 
-// This function checks the coordinates entered by the user in the field
-void checkBoard (int board[10][10], int posX, int posY, int count) {
+/**
+ * This function checks the coordinates entered by 
+ * the user in the field
+ * @param board: matrix
+ * @param posX: x coordenate
+ * @param posY: y coordenate
+ * @param count: auxiliary variable for counting
+ */
+void checkBoard (int board[][TAM], int posX, int posY, int count) {
   int newPosX, newPosY;
 
-  // Base case
+  //! Base case
   checkVictory(board, posX, posY, count);
   plotBoard(board, posX, posY);
 
-  showRemainingFieldsMessage;
-  showSeparator;
-  showNewCoordinatesMessage;
+  printf("%s%d\n", messages[10], count);
+  printf("%s", messages[2]);
+  printf("%s", messages[9]);
+
   scanf("%d %d", &newPosX, &newPosY);
 
-  // Checks for errors in positions
+  //! Checks for errors in positions
   if (newPosX > 8 || newPosY > 8 || newPosX < 1 || newPosY < 1) {
-    showRangeErrorMessage;
+    printf("%s", messages[3]);
     return checkBoard(board, newPosX=0, newPosY=0, count);
   } if (board[newPosX][newPosY] == 1) {
-    showCoordinatesErrorMessage;
+    printf("%s", messages[4]);
     return checkBoard(board, newPosX=0, newPosY=0, count);
   }
 
@@ -48,20 +89,31 @@ void checkBoard (int board[10][10], int posX, int posY, int count) {
 }
 
 
-// This function checks whether the player has won or not
-void checkVictory (int board[10][10], int posX, int posY, int count) {
+/**
+ * This function checks whether the player has won or not
+ * @param board: matrix
+ * @param posX: x coordenate
+ * @param posY: y coordenate
+ * @param count: auxiliary variable for counting
+ */
+void checkVictory (int board[][TAM], int posX, int posY, int count) {
   if (board[posX][posY] == 9 && count != 0) {
-    showGameOverMessage;
+    printf("%s", messages[0]);
     continueGame();
   } if (count == 0) {
-    showWinMessage;
+    printf("%s", messages[1]);
     continueGame();
   }
 }
 
 
-// This function displays the game on the screen
-void plotBoard (int board[10][10], int posX, int posY) {
+/**
+ * This function displays the game on the screen
+ * @param board: matrix
+ * @param posX: x coordenate
+ * @param posY: y coordenate
+ */
+void plotBoard (int board[][TAM], int posX, int posY) {
   int i, j;
   for (i = 0; i < 11; i++) {
     putchar('\n');
@@ -75,15 +127,17 @@ void plotBoard (int board[10][10], int posX, int posY) {
       else if (i != 10) printf("o ");
     }
   }
-
-  return;
 }
 
 
-// This function creates the board with bombs at random locations according to 
-// the selected level and gives the number of fields without bombs
+/**
+ * This function creates the board with bombs at 
+ * random locations according to the selected level 
+ * and gives the number of fields without bombs
+ * @param level: variable indicating the difficulty level of the game
+ */
 void generateBombs (int level) {
-  int board[10][10], amount=level+4;
+  int board[TAM][TAM], amount=level+4;
   
   while (level >= 0) {
     board[rand() % 9][rand() % 10] = 9;
@@ -94,13 +148,15 @@ void generateBombs (int level) {
 }
 
 
-// This function displays a game continuation message
+/**
+ * This function displays a game continuation message
+ */
 void continueGame () {
   char resp;
 
   do {
-    showSeparator;
-    showTryAgainMessage;
+    printf("%s", messages[2]);
+    printf("%s", messages[8]);
     getchar();
     scanf("%c", &resp);
 
@@ -112,25 +168,25 @@ void continueGame () {
     }
 
   } while (resp != 'N' || resp != 'n');
-
-  return;
 }
 
 
-// This function displays a level selection message
+/**
+ * This function displays a level selection message
+ */
 void levelSelector () {
   int level;
 
   system("clear");
 
   do {
-    showHeaderGame;
-    showSelectLevelMessage;
+    printf("%s", messages[5]);
+    printf("%s", messages[6]);
 
     scanf("%d", &level);
 
     if (level < 1 || level > 3) {
-      showSelectLevelAlertMessage;
+      printf("%s", messages[7]);
       sleep(2); 
       system("clear");
     }
@@ -141,7 +197,7 @@ void levelSelector () {
 }
 
 
-// Start
+//! Start
 void main () {
   levelSelector();
 }
